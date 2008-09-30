@@ -1,6 +1,12 @@
+# Copyright (c) 2008 by David Golden. All rights reserved.
+# Licensed under Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License was distributed with this file or you may obtain a 
+# copy of the License from http://www.apache.org/licenses/LICENSE-2.0
+
 package Exception::Class::TryCatch;
 
-$VERSION     = "1.10";
+$VERSION     = '1.11';
 @ISA         = qw (Exporter);
 @EXPORT      = qw ( catch try );
 @EXPORT_OK   = qw ( caught );
@@ -13,13 +19,63 @@ use Exporter ();
 
 my @error_stack;
 
-##### main pod documentation #####
+#--------------------------------------------------------------------------#
+# catch()
+#--------------------------------------------------------------------------#
 
-=head1 NAME
+sub catch(;$$) {
+    my $e;
+    my $err = @error_stack ? pop @error_stack : $@;
+    if ( UNIVERSAL::isa($err, 'Exception::Class::Base' ) ) {
+        $e = $err;
+    } 
+    elsif ($err eq '') {
+        $e = undef;
+    }
+    else {
+        # use error message or hope something stringifies
+        $e = Exception::Class::Base->new( "$err" );
+    }
+    unless ( ref($_[0]) eq 'ARRAY' ) { 
+        $_[0] = $e;
+        shift;
+    }
+    if ($e) {
+        if ( defined($_[0]) and ref($_[0]) eq 'ARRAY' ) {
+            $e->rethrow() unless grep { $e->isa($_) } @{$_[0]};
+        }
+    }
+    return $e;
+}
+
+*caught = \&catch;
+
+#--------------------------------------------------------------------------#
+# try()
+#--------------------------------------------------------------------------#
+
+sub try($) {
+    my $v = shift;
+    push @error_stack, $@;
+    return ref($v) eq 'ARRAY' ? @$v : $v if wantarray;
+    return $v;
+}
+
+1;
+
+__END__
+
+=begin wikidoc
+
+= NAME
 
 Exception::Class::TryCatch - Syntactic try/catch sugar for use with Exception::Class
 
-=head1 SYNOPSIS
+= VERSION
+
+This documentation describes version %%VERSION%%.
+
+= SYNOPSIS
 
     use Exception::Class::TryCatch;
     
@@ -51,45 +107,39 @@ Exception::Class::TryCatch - Syntactic try/catch sugar for use with Exception::C
         # cleanup that might use "try/catch" again
     };
     catch my $err; # catches a matching "try"
-  
-=head1 DESCRIPTION
+
+= DESCRIPTION
 
 Exception::Class::TryCatch provides syntactic sugar for use with
-L<Exception::Class> using the familiar keywords C<try> and C<catch>.  Its
-primary objective is to allow users to avoid dealing directly with C<$@> by
-ensuring that any exceptions caught in an C<eval> are captured as
-L<Exception::Class> objects, whether they were thrown objects to begin with or
-whether the error resulted from C<die>.  This means that users may immediately
-use C<isa> and various L<Exception::Class> methods to process the exception. 
+[Exception::Class] using the familiar keywords {try} and {catch}.  Its
+primary objective is to allow users to avoid dealing directly with {$@} by
+ensuring that any exceptions caught in an {eval} are captured as
+[Exception::Class] objects, whether they were thrown objects to begin with or
+whether the error resulted from {die}.  This means that users may immediately
+use {isa} and various [Exception::Class] methods to process the exception. 
 
 In addition, this module provides for a method to push errors onto a hidden
-error stack immediately after an C<eval> so that cleanup code or other error
-handling may also call C<eval> without the original error in C<$@> being lost.
+error stack immediately after an {eval} so that cleanup code or other error
+handling may also call {eval} without the original error in {$@} being lost.
 
 Inspiration for this module is due in part to Dave Rolsky's
 article "Exception Handling in Perl With Exception::Class" in
-I<The Perl Journal> (Rolsky 2004).
+~The Perl Journal~ (Rolsky 2004).
 
-The C<try/catch> syntax used in this module does not use code reference
-prototypes the way the L<Error.pm|Error> module does, but simply provides some
-helpful functionality when used in combination with C<eval>.  As a result, it
+The {try/catch} syntax used in this module does not use code reference
+prototypes the way the [Error.pm|Error] module does, but simply provides some
+helpful functionality when used in combination with {eval}.  As a result, it
 avoids the complexity and dangers involving nested closures and memory leaks
-inherent in L<Error.pm|Error> (Perrin 2003).  
+inherent in [Error.pm|Error] (Perrin 2003).  
 
 Rolsky (2004) notes that these memory leaks may not occur in recent versions of
 Perl, but the approach used in Exception::Class::TryCatch should be safe for all
-versions of Perl as it leaves all code execution to the C<eval> in the current
+versions of Perl as it leaves all code execution to the {eval} in the current
 scope, avoiding closures altogether.
 
-=head1 USAGE
+= USAGE
 
-=cut
-
-#--------------------------------------------------------------------------#
-# catch()
-#--------------------------------------------------------------------------#
-
-=head2 C<catch>
+== {catch}
 
     # zero argument form
     my $err = catch;
@@ -101,47 +151,38 @@ scope, avoiding closures altogether.
     # two argument form
     catch my $err, [ 'Exception::Type', 'Exception::Other::Type' ];
 
-Returns an C<Exception::Class::Base> object (or an object which is a 
-subclass of it) if an exception has been caught by C<eval> or else 
-returns C<undef> if no error exists.  The exception is either popped
-from a hidden error stack (see C<try>) or, if the stack is empty, taken from
-the current value of C<$@>.
+Returns an {Exception::Class::Base} object (or an object which is a 
+subclass of it) if an exception has been caught by {eval} or else 
+returns {undef} if no error exists.  The exception is either popped
+from a hidden error stack (see {try}) or, if the stack is empty, taken from
+the current value of {$@}.
 
-If the exception is not an C<Exception::Class::Base> object (or subclass
-object), an C<Exception::Class::Base> object will be created using the string
-contents of the exception.  This means that calls to C<die> will be wrapped and
+If the exception is not an {Exception::Class::Base} object (or subclass
+object), an {Exception::Class::Base} object will be created using the string
+contents of the exception.  This means that calls to {die} will be wrapped and
 may be treated as exception objects.  Other objects caught will be stringfied
 and wrapped likewise.  Such wrapping will likely result in confusing stack
-traces and the like, so any methods other than C<error> used on 
-C<Exception::Class::Base> objects caught should be used with caution.
+traces and the like, so any methods other than {error} used on 
+{Exception::Class::Base} objects caught should be used with caution.
 
-C<catch> is prototyped to take up to two optional scalar arguments.  The single
+{catch} is prototyped to take up to two optional scalar arguments.  The single
 argument form has two variations.  
 
-=over
-
-=item *
-
-If the argument is a reference to an array,
+* If the argument is a reference to an array,
 any exception caught that is not of the same type (or a subtype) of one
 of the classes listed in the array will be rethrown.  
-
-=item *
-
-If the argument is not a reference to an array, C<catch> 
+* If the argument is not a reference to an array, {catch} 
 will set the argument to the same value that is returned. 
-This allows for the C<catch my $err> idiom without parentheses.
-
-=back
+This allows for the {catch my $err} idiom without parentheses.
 
 In the two-argument form, the first argument is set to the same value as is
 returned.  The second argument must be an array reference and is handled 
 the same as as for the single argument version with an array reference, as
 given above.
 
-=head2 C<caught> (DEPRECATED)
+== {caught} (DEPRECATED)
 
-C<caught> is a synonym for C<catch> for syntactic convenience.
+{caught} is a synonym for {catch} for syntactic convenience.
 
 NOTE: Exception::Class version 1.21 added a "caught" method of its own.  It
 provides somewhat similar functionality to this subroutine, but with very
@@ -152,40 +193,7 @@ in future releases of Exception::Class::TryCatch.
 
 This method is no longer exported by default.
 
-=cut
-
-sub catch(;$$) {
-    my $e;
-    my $err = @error_stack ? pop @error_stack : $@;
-    if ($err eq '') {
-        $e = undef;
-    }
-    elsif ( UNIVERSAL::isa($err, 'Exception::Class::Base' ) ) {
-        $e = $err;
-    } 
-    else {
-        # use error message or hope something stringifies
-        $e = Exception::Class::Base->new( "$err" );
-    }
-    unless ( ref($_[0]) eq 'ARRAY' ) { 
-        $_[0] = $e;
-        shift;
-    }
-    if ($e) {
-        if ( defined($_[0]) and ref($_[0]) eq 'ARRAY' ) {
-            $e->rethrow() unless grep { $e->isa($_) } @{$_[0]};
-        }
-    }
-    return $e;
-}
-
-*caught = \&catch;
-
-#--------------------------------------------------------------------------#
-# try()
-#--------------------------------------------------------------------------#
-
-=head2 C<try>
+== {try}
 
     # void context
     try eval {
@@ -202,36 +210,36 @@ sub catch(;$$) {
     # list context
     @rv = try [ eval { return @array } ];
 
-Pushes the current error (C<$@>) onto a hidden error stack for later use by
-C<catch>.  C<try> uses a prototype that expects a single scalar so that it can
-be used with eval without parentheses.  As C<eval { BLOCK }> is an argument
-to try, it will be evaluated just prior to C<try>, ensuring that C<try>
-captures the correct error status.  C<try> does not itself handle any errors --
-it merely records the results of C<eval>. C<try { BLOCK }> will be interpreted
+Pushes the current error ({$@}) onto a hidden error stack for later use by
+{catch}.  {try} uses a prototype that expects a single scalar so that it can
+be used with eval without parentheses.  As {eval { BLOCK }} is an argument
+to try, it will be evaluated just prior to {try}, ensuring that {try}
+captures the correct error status.  {try} does not itself handle any errors --
+it merely records the results of {eval}. {try { BLOCK }} will be interpreted
 as passing a hash reference and will (probably) not compile. (And if it does,
 it will result in very unexpected behavior.)
 
-Since C<try> requires a single argument, C<eval> will normally be called
-in scalar context.  To use C<eval> in list context with C<try>, put the 
-call to C<eval> in an anonymous array:  
+Since {try} requires a single argument, {eval} will normally be called
+in scalar context.  To use {eval} in list context with {try}, put the 
+call to {eval} in an anonymous array:  
 
   @rv = try [ eval {return @array} ];
 
-When C<try> is called in list context, if the argument to C<try> is an array
-reference, C<try> will dereference the array and return the resulting list.
+When {try} is called in list context, if the argument to {try} is an array
+reference, {try} will dereference the array and return the resulting list.
 
-In scalar context, C<try> passes through the scalar value returned
-by C<eval> without modifications -- even if that is an array reference.
+In scalar context, {try} passes through the scalar value returned
+by {eval} without modifications -- even if that is an array reference.
 
   $rv = try eval { return $scalar };
   $rv = try eval { return [ qw( anonymous array ) ] };
 
-Of course, if the eval throws an exception, C<eval> and thus C<try> will return
+Of course, if the eval throws an exception, {eval} and thus {try} will return
 undef.
 
-C<try> must always be properly bracketed with a matching C<catch> or unexpected
-behavior may result when C<catch> pops the error off of the stack.  C<try> 
-executes right after its C<eval>, so inconsistent usage of C<try> like the
+{try} must always be properly bracketed with a matching {catch} or unexpected
+behavior may result when {catch} pops the error off of the stack.  {try} 
+executes right after its {eval}, so inconsistent usage of {try} like the
 following will work as expected:
 
     try eval {
@@ -252,12 +260,12 @@ However, the following code is a problem:
     catch my $outer_err;
     # handle $outer_err;
     
-This code will appear to run correctly, but C<catch> gets the exception
-from the inner C<try>, not the outer one, and there will still be an exception
-on the error stack which will be caught by the next C<catch> in the program, 
+This code will appear to run correctly, but {catch} gets the exception
+from the inner {try}, not the outer one, and there will still be an exception
+on the error stack which will be caught by the next {catch} in the program, 
 causing unexpected (and likely hard to track) behavior.
 
-In short, if you use C<try>, you must have a matching C<catch>.  The problem
+In short, if you use {try}, you must have a matching {catch}.  The problem
 code above should be rewritten as:
 
     try eval {
@@ -268,91 +276,52 @@ code above should be rewritten as:
     catch my $outer_err;
     # handle $outer_err;
 
-=cut
-
-sub try($) {
-    my $v = shift;
-    push @error_stack, $@;
-    return ref($v) eq 'ARRAY' ? @$v : $v if wantarray;
-    return $v;
-}
-
-
-1; #this line is important and will help the module return a true value
-__END__
-
-=head1 REFERENCES
-
-=over
-
-=item 1. 
-
-perrin. (2003), "Re: Re2: Learning how to use the Error module by example",
-(perlmonks.org), Available: http://www.perlmonks.org/index.pl?node_id=278900
-(Accessed September 8, 2004).
-
-=item 2.
-
-Rolsky, D. (2004), "Exception Handling in Perl with Exception::Class",
-I<The Perl Journal>, vol. 8, no. 7, pp. 9-13
-
-=back
-
-=head1 SEE ALSO
-
-- L<Exception::Class>
-
-- L<Error> [but see (Perrin 2003) before using]
-
-=head1 BUGS
+= BUGS
 
 Please report any bugs or feature using the CPAN Request Tracker.  
-Bugs can be submitted by email to C<bug-DISTNAME@rt.cpan.org> or 
-through the web interface at 
-L<http://rt.cpan.org/Public/Dist/Display.html?Name=DISTNAME>
+Bugs can be submitted through the web interface at 
+[http://rt.cpan.org/Dist/Display.html?Queue=Exception-Class-TryCatch]
 
 When submitting a bug or request, please include a test-file or a patch to an
 existing test-file that illustrates the bug or desired feature.
 
-=head1 AUTHOR
+= REFERENCES
 
-David A Golden 
+0 perrin. (2003), "Re: Re2: Learning how to use the Error module by example",
+(perlmonks.org), Available: http://www.perlmonks.org/index.pl?node_id=278900
+(Accessed September 8, 2004).
+0 Rolsky, D. (2004), "Exception Handling in Perl with Exception::Class",
+~The Perl Journal~, vol. 8, no. 7, pp. 9-13
 
-dagolden@cpan.org
+= SEE ALSO
 
-http://dagolden.com/
+* [Exception::Class]
+* [Error] -- but see (Perrin 2003) before using
 
-=head1 COPYRIGHT
+= AUTHOR
 
-Copyright (c) 2004, 2005, 2006 by David A. Golden
+David A. Golden (DAGOLDEN)
 
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+= COPYRIGHT AND LICENSE
 
-The full text of the license can be found in the
-LICENSE file included with this module.
+Copyright (c) 2004-2008 by David A. Golden. All rights reserved.
 
-=head1 DISCLAIMER OF WARRANTY
+Licensed under Apache License, Version 2.0 (the "License").
+You may not use this file except in compliance with the License.
+A copy of the License was distributed with this file or you may obtain a 
+copy of the License from http://www.apache.org/licenses/LICENSE-2.0
 
-BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
-FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
-OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
-PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
-EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
-ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
-YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
-NECESSARY SERVICING, REPAIR, OR CORRECTION.
+Files produced as output though the use of this software, shall not be
+considered Derivative Works, but shall be considered the original work of the
+Licensor.
 
-IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
-WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
-REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
-LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
-OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
-THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
-RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
-FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
-SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGES.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+=end wikidoc
 
 =cut
+

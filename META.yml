@@ -1,18 +1,26 @@
 ---
 name: Exception-Class-TryCatch
-version: 1.10
+version: 1.11
 author:
-  - David A Golden <dagolden@cpan.org>
-abstract: Syntactic try/catch sugar for use with Exception::Class
-license: perl
+  - 'David Golden <dagolden@cpan.org>'
+abstract: Syntactic tryE<sol>catch sugar for use with Exception::Class
+license: apache
 resources:
-  license: http://dev.perl.org/licenses/
+  license: http://apache.org/licenses/LICENSE-2.0
 requires:
-  Exception::Class: 1.2
-  Test::More: 0.45
-  perl: 5.005
+  perl: 5.006
+build_requires:
+  Test::More: 0.47
 provides:
   Exception::Class::TryCatch:
     file: lib/Exception/Class/TryCatch.pm
-    version: 1.10
-generated_by: Module::Build version 0.2703
+    version: 1.11
+generated_by: Module::Build version 0.3
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
+no_index:
+  directory:
+    - examples
+    - inc
+    - t
