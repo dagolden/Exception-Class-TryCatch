@@ -18,7 +18,8 @@ my $build = $class->new(
     create_readme => 1,
     create_makefile_pl  => 'traditional',
     requires => {
-        'perl' => '5.006',
+        'perl' => '5.005',
+        'Exception::Class' => 1.20,
     },
     build_requires => {
         'Test::More' => 0.47,

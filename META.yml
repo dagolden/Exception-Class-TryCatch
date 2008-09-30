@@ -8,7 +8,8 @@ license: apache
 resources:
   license: http://apache.org/licenses/LICENSE-2.0
 requires:
-  perl: 5.006
+  Exception::Class: 1.2
+  perl: 5.005
 build_requires:
   Test::More: 0.47
 provides:

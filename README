@@ -97,9 +97,9 @@ USAGE
     "catch" is prototyped to take up to two optional scalar arguments. The
     single argument form has two variations.
 
-    *If the argument is a reference to an array, any exception caught that
-    is not of the same type (or a subtype) of one of the classes listed in
-    the array will be rethrown.
+    *   If the argument is a reference to an array, any exception caught
+        that is not of the same type (or a subtype) of one of the classes
+        listed in the array will be rethrown.
 
     *   If the argument is not a reference to an array, "catch" will set the
         argument to the same value that is returned. This allows for the

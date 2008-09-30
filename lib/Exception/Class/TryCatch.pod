@@ -103,11 +103,13 @@ C<<< Exception::Class::Base >>> objects caught should be used with caution.
 C<<< catch >>> is prototyped to take up to two optional scalar arguments.  The single
 argument form has two variations.  
 
-*If the argument is a reference to an array,
+=over
+
+=item *
+
+If the argument is a reference to an array,
 any exception caught that is not of the same type (or a subtype) of one
 of the classes listed in the array will be rethrown.  
-
-=over
 
 =item *
 
