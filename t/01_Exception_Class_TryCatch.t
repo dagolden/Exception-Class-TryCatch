@@ -6,6 +6,15 @@ use Test::More tests =>  42 ;
 use Exception::Class::TryCatch qw( try catch caught );
 use Exception::Class 'My::Exception::Class', 'My::Other::Exception';
 
+package My::Exception::Class;
+# check for bug when some Exception class stringifies to empty string
+use overload 
+  q{""} => sub { return '' },
+  fallback => 1
+;
+
+package main;
+
 my $e;
 
 #--------------------------------------------------------------------------#
