@@ -3,7 +3,7 @@ NAME
     Exception::Class
 
 VERSION
-    This documentation describes version 1.11.
+    This documentation describes version 1.12.
 
 SYNOPSIS
          use Exception::Class::TryCatch;

@@ -1,6 +1,6 @@
 ---
 name: Exception-Class-TryCatch
-version: 1.11
+version: 1.12
 author:
   - 'David Golden <dagolden@cpan.org>'
 abstract: Syntactic tryE<sol>catch sugar for use with Exception::Class
@@ -15,7 +15,7 @@ build_requires:
 provides:
   Exception::Class::TryCatch:
     file: lib/Exception/Class/TryCatch.pm
-    version: 1.11
+    version: 1.12
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

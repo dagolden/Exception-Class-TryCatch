@@ -6,7 +6,7 @@
 
 package Exception::Class::TryCatch;
 
-$VERSION     = '1.11';
+$VERSION     = '1.12';
 @ISA         = qw (Exporter);
 @EXPORT      = qw ( catch try );
 @EXPORT_OK   = qw ( caught );
