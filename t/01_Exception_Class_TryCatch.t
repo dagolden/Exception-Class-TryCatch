@@ -1,7 +1,7 @@
 # Exception::Class::TryCatch  
 use strict;
 
-use Test::More tests =>  42 ;
+use Test::More tests =>  45 ;
 
 use Exception::Class::TryCatch qw( try catch caught );
 use Exception::Class 'My::Exception::Class', 'My::Other::Exception';
@@ -126,6 +126,23 @@ $rv = try eval { My::Exception::Class->throw( "error" ) };
 catch $err;
 is ( $rv, undef, "try gets undef on exception" );
 is ( $err->error, 'error', "simple try/catch works" );
+
+#--------------------------------------------------------------------------#
+# Test try/catch to array
+#--------------------------------------------------------------------------#
+
+$rv = try eval { My::Exception::Class->throw( "error" ) };
+my @err = catch;
+is ( scalar @err, 1, '@array = catch' );
+is ( $err[0]->error, 'error', 'array catch works' );
+
+#--------------------------------------------------------------------------#
+# Test try/catch to array -- no error
+#--------------------------------------------------------------------------#
+
+$rv = try eval { 42 };
+@err = catch;
+is ( scalar @err, 0, 'array catch with no error returns empty array' );
 
 #--------------------------------------------------------------------------#
 # Test multiple try/catch with double error

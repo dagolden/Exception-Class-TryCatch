@@ -45,7 +45,7 @@ sub catch(;$$) {
             $e->rethrow() unless grep { $e->isa($_) } @{$_[0]};
         }
     }
-    return $e;
+    return wantarray ? ( $e ? ($e) : () ) : $e;
 }
 
 *caught = \&catch;
@@ -151,11 +151,11 @@ scope, avoiding closures altogether.
     # two argument form
     catch my $err, [ 'Exception::Type', 'Exception::Other::Type' ];
 
-Returns an {Exception::Class::Base} object (or an object which is a 
-subclass of it) if an exception has been caught by {eval} or else 
-returns {undef} if no error exists.  The exception is either popped
-from a hidden error stack (see {try}) or, if the stack is empty, taken from
-the current value of {$@}.
+Returns an {Exception::Class::Base} object (or an object which is a subclass of
+it) if an exception has been caught by {eval}.  If no exception was thrown, it
+returns {undef} in scalar context and an empty list in list context.   The
+exception is either popped from a hidden error stack (see {try}) or, if the
+stack is empty, taken from the current value of {$@}.
 
 If the exception is not an {Exception::Class::Base} object (or subclass
 object), an {Exception::Class::Base} object will be created using the string

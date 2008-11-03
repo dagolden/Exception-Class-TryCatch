@@ -1,5 +1,10 @@
 Revision history for Perl module Exception::Class::TryCatch
 
+1.12
+
+    - Changed: if no exception was thrown, catch() returns an empty array
+      in list context
+
 1.11 Tue Sep 30 12:21:56 EDT 2008
 
     - Fixed: Exception::Class objects that stringified to an empty string
