@@ -1,19 +1,14 @@
-# Copyright (c) 2008 by David Golden. All rights reserved.
-# Licensed under Apache License, Version 2.0 (the "License").
-# You may not use this file except in compliance with the License.
-# A copy of the License was distributed with this file or you may obtain a 
-# copy of the License from http://www.apache.org/licenses/LICENSE-2.0
+use strict;
+use warnings;
 
 package Exception::Class::TryCatch;
+# ABSTRACT: Syntactic try/catch sugar for use with Exception::Class
+# VERSION
 
-$VERSION     = '1.12';
-@ISA         = qw (Exporter);
-@EXPORT      = qw ( catch try );
-@EXPORT_OK   = qw ( caught );
+our @ISA         = qw (Exporter);
+our @EXPORT      = qw ( catch try );
+our @EXPORT_OK   = qw ( caught );
 
-use 5.005; # Aiming for same as Exception::Class
-#use warnings -- not supported in Perl 5.5, darn
-use strict;
 use Exception::Class;
 use Exporter ();
 
@@ -23,7 +18,7 @@ my @error_stack;
 # catch()
 #--------------------------------------------------------------------------#
 
-sub catch(;$$) {
+sub catch(;$$) { ## no critic
     my $e;
     my $err = @error_stack ? pop @error_stack : $@;
     if ( UNIVERSAL::isa($err, 'Exception::Class::Base' ) ) {
@@ -54,7 +49,7 @@ sub catch(;$$) {
 # try()
 #--------------------------------------------------------------------------#
 
-sub try($) {
+sub try($) { ## no critic
     my $v = shift;
     push @error_stack, $@;
     return ref($v) eq 'ARRAY' ? @$v : $v if wantarray;
@@ -66,14 +61,6 @@ sub try($) {
 __END__
 
 =begin wikidoc
-
-= NAME
-
-Exception::Class::TryCatch - Syntactic try/catch sugar for use with Exception::Class
-
-= VERSION
-
-This documentation describes version %%VERSION%%.
 
 = SYNOPSIS
 
@@ -160,7 +147,7 @@ stack is empty, taken from the current value of {$@}.
 If the exception is not an {Exception::Class::Base} object (or subclass
 object), an {Exception::Class::Base} object will be created using the string
 contents of the exception.  This means that calls to {die} will be wrapped and
-may be treated as exception objects.  Other objects caught will be stringfied
+may be treated as exception objects.  Other objects caught will be stringified
 and wrapped likewise.  Such wrapping will likely result in confusing stack
 traces and the like, so any methods other than {error} used on 
 {Exception::Class::Base} objects caught should be used with caution.
@@ -276,15 +263,6 @@ code above should be rewritten as:
     catch my $outer_err;
     # handle $outer_err;
 
-= BUGS
-
-Please report any bugs or feature using the CPAN Request Tracker.  
-Bugs can be submitted through the web interface at 
-[http://rt.cpan.org/Dist/Display.html?Queue=Exception-Class-TryCatch]
-
-When submitting a bug or request, please include a test-file or a patch to an
-existing test-file that illustrates the bug or desired feature.
-
 = REFERENCES
 
 0 perrin. (2003), "Re: Re2: Learning how to use the Error module by example",
@@ -297,29 +275,6 @@ existing test-file that illustrates the bug or desired feature.
 
 * [Exception::Class]
 * [Error] -- but see (Perrin 2003) before using
-
-= AUTHOR
-
-David A. Golden (DAGOLDEN)
-
-= COPYRIGHT AND LICENSE
-
-Copyright (c) 2004-2008 by David A. Golden. All rights reserved.
-
-Licensed under Apache License, Version 2.0 (the "License").
-You may not use this file except in compliance with the License.
-A copy of the License was distributed with this file or you may obtain a 
-copy of the License from http://www.apache.org/licenses/LICENSE-2.0
-
-Files produced as output though the use of this software, shall not be
-considered Derivative Works, but shall be considered the original work of the
-Licensor.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 
 =end wikidoc
 

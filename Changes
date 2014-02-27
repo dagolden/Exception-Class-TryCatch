@@ -1,5 +1,13 @@
 Revision history for Perl module Exception::Class::TryCatch
 
+{{$NEXT}}
+
+    [CHANGED]
+
+    - Updated distribution metadata, repo and bugtracker
+
+    - Distribution now managed with Dist::Zilla
+
 1.12 Mon Nov  3 17:12:19 EST 2008
 
     - Changed: if no exception was thrown, catch() returns an empty array
