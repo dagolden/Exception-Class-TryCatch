@@ -5,9 +5,9 @@ package Exception::Class::TryCatch;
 # ABSTRACT: Syntactic try/catch sugar for use with Exception::Class
 # VERSION
 
-our @ISA         = qw (Exporter);
-our @EXPORT      = qw ( catch try );
-our @EXPORT_OK   = qw ( caught );
+our @ISA       = qw (Exporter);
+our @EXPORT    = qw ( catch try );
+our @EXPORT_OK = qw ( caught );
 
 use Exception::Class;
 use Exporter ();
@@ -21,23 +21,23 @@ my @error_stack;
 sub catch(;$$) { ## no critic
     my $e;
     my $err = @error_stack ? pop @error_stack : $@;
-    if ( UNIVERSAL::isa($err, 'Exception::Class::Base' ) ) {
+    if ( UNIVERSAL::isa( $err, 'Exception::Class::Base' ) ) {
         $e = $err;
-    } 
-    elsif ($err eq '') {
+    }
+    elsif ( $err eq '' ) {
         $e = undef;
     }
     else {
         # use error message or hope something stringifies
-        $e = Exception::Class::Base->new( "$err" );
+        $e = Exception::Class::Base->new("$err");
     }
-    unless ( ref($_[0]) eq 'ARRAY' ) { 
+    unless ( ref( $_[0] ) eq 'ARRAY' ) {
         $_[0] = $e;
         shift;
     }
     if ($e) {
-        if ( defined($_[0]) and ref($_[0]) eq 'ARRAY' ) {
-            $e->rethrow() unless grep { $e->isa($_) } @{$_[0]};
+        if ( defined( $_[0] ) and ref( $_[0] ) eq 'ARRAY' ) {
+            $e->rethrow() unless grep { $e->isa($_) } @{ $_[0] };
         }
     }
     return wantarray ? ( $e ? ($e) : () ) : $e;
